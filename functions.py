@@ -10,14 +10,14 @@ class QuantumWell():
     C = 1.602176565e-19 #C #Charge of electron
     hb = 1.054571817e-34 #Js #Reduced Planck's constant
     m0 = 9.10938291e-31 #kg #Rest mass of electron
-    def __init__(self, a, well='GaAs', barrier='AlAs', phase='cub', plot=True):
+    def __init__(self, W, well='GaAs', barrier='AlAs', phase='cub', plot=True):
 
-        self.setup_parameters(a, well, barrier, phase, plot)
+        self.setup_parameters(W, well, barrier, phase, plot)
 
         
         #self.normalize(self.bandEc, self.Ec, self.kc, self.thetac)
         
-    def setup_parameters(self, aW, well, barrier, phase, plot):
+    def setup_parameters(self, W_L, well, barrier, phase, plot):
         self.plot = plot
         self.well = well
         self.barrier = barrier
@@ -35,75 +35,75 @@ class QuantumWell():
         self.V0c = V0c * self.C
         self.V0v = V0v * self.C
         self.V0 = {'c': V0c, 'v': V0v}
-        self.aW = self.check_aW(aW)
-        self.setup(self.aW, self.plot)
+        self.W_L = self.check_W_L(W_L)
+        self.setup(self.W_L, self.plot)
         
-    def check_aW(self, aW):
+    def check_W_L(self, W_L):
 
         '''
-        Converts aW to numpy array in meters
+        Converts W_L to numpy array in meters
         
-        aW: int or float in nm
+        W_L: int or float in nm
         '''
 
         try:
-            if aW.shape[0] > 1:
+            if W_L.shape[0] > 1:
                 self.plot= False
         except:
             try:
-                aW = np.arange(aW, aW + 0.99, 1.0)
+                W_L = np.arange(W_L, W_L + 0.99, 1.0)
                 
             except:
-                print('Wrong format for aW')
+                print('Wrong format for W_L')
                 sys.exit()
-        aW = np.round(aW, 4)
+        W_L = np.round(W_L, 4)
 
-        return aW
+        return W_L
         
-    def setup(self, aW, plot): 
-        for a in aW:
-            #Prepare containers for energies, k, and theta for each aW, for each band.
-            self.E[str(a)] = {}
-            self.E[str(a)]['c'] = []
-            self.E[str(a)]['v'] = []
-            self.k[str(a)] = {}
-            self.k[str(a)]['c'] = []
-            self.k[str(a)]['v'] = []
-            self.t[str(a)] = {}
-            self.t[str(a)]['c'] = []
-            self.t[str(a)]['v'] = []
+    def setup(self, W_L, plot): 
+        for W in W_L:
+            #Prepare containers for energies, k, and theta for each W_L, for each band.
+            self.E[str(W)] = {}
+            self.E[str(W)]['c'] = []
+            self.E[str(W)]['v'] = []
+            self.k[str(W)] = {}
+            self.k[str(W)]['c'] = []
+            self.k[str(W)]['v'] = []
+            self.t[str(W)] = {}
+            self.t[str(W)]['c'] = []
+            self.t[str(W)]['v'] = []
             
-            Ec, kc, tc = self.energy_calculator(self.V0['c'] * self.C, a * 1e-9, 'c' , plot)
-            Ev, kv, tv = self.energy_calculator(self.V0['v'] * self.C, a * 1e-9, 'v', plot)
+            Ec, kc, tc = self.energy_calculator(self.V0['c'] * self.C, W * 1e-9, 'c' , plot)
+            Ev, kv, tv = self.energy_calculator(self.V0['v'] * self.C, W * 1e-9, 'v', plot)
             
-            self.E[str(a)]['c'] = Ec
-            self.E[str(a)]['v'] = Ev 
-            self.k[str(a)]['c'] = kc
-            self.k[str(a)]['v'] = kv
-            self.t[str(a)]['c'] = tc
-            self.t[str(a)]['v'] = tv
+            self.E[str(W)]['c'] = Ec
+            self.E[str(W)]['v'] = Ev 
+            self.k[str(W)]['c'] = kc
+            self.k[str(W)]['v'] = kv
+            self.t[str(W)]['c'] = tc
+            self.t[str(W)]['v'] = tv
 
             self.dE.append(Ec[0] + self.EgW + Ev[0])
 
         
-        #if self.aW.shape[0] > 1:
+        #if self.W_L.shape[0] > 1:
              #fig, ax = plt.subplots(dpi=600)
-             #plt.plot(self.aW, dE)
-    def plot_aW(self):
-        if self.aW.shape[0] > 1:
+             #plt.plot(self.W_L, dE)
+    def plot_W_L(self):
+        if self.W_L.shape[0] > 1:
             fig, ax = plt.subplots(dpi=500)
-            ax.plot(self.aW, self.dE)
+            ax.plot(self.W_L, self.dE)
             ax.set_xlabel(r'$L_W$')
             ax.set_ylabel(r'Emission')
        
-    def energy_calculator(self, V0, aW, band, plot):
+    def energy_calculator(self, V0, W_L, band, plot):
         C = 1.602176565e-19 #C #Charge of electron
         hb = 1.054571817e-34 #Js #Reduced Planck's constant
         m0 = 9.10938291e-31 #kg #Rest mass of electron
 
         mW = params[self.well][self.phase][self.m[band]]
         mB = params[self.barrier][self.phase][self.m[band]]
-        theta0 = np.sqrt(m0 * mW * V0 * aW ** 2 / (2 * hb ** 2) )
+        theta0 = np.sqrt(m0 * mW * V0 * W_L ** 2 / (2 * hb ** 2) )
         NoOS = np.ceil(theta0/(np.pi/2));
         
         theta = np.arange(self.dtheta, theta0, self.dtheta);
@@ -116,11 +116,11 @@ class QuantumWell():
                                      leftHandSideEven, leftHandSideOdd, plot)
     
         theta = np.sort(theta)
-        k = 2 * theta / aW
+        k = 2 * theta / W_L
         E = hb ** 2 * k ** 2 / (2*m0*mW*C)
         return E, k, theta
     
-    def normalize(self, band, a=None, plot=False):
+    def normalize(self, band, W=None, plot=False):
         '''
         band: str
         a: int or float in nm
@@ -128,19 +128,19 @@ class QuantumWell():
         if band !='c' and band!='v':
             print('Incorrect band \'c\' or \'v\'')
             return
-        if a == None:
-            aW = self.aW[0]
+        if W == None:
+            W_L = self.W_L[0]
         else:
-            if str(float(a)) not in self.E.keys():
-                self.setup(self.check_aW(a), plot)
-            aW = a
+            if str(float(W)) not in self.E.keys():
+                self.setup(self.check_W_L(W), plot)
+            W_L = W
         V0 = self.V0[band]
         mW = params[self.well][self.phase][self.m[band]]
         mB = params[self.barrier][self.phase][self.m[band]]
         
-        k = self.k[str(float(aW))][band]
-        theta = self.t[str(float(aW))][band]
-        E = self.E[str(float(aW))][band]
+        k = self.k[str(float(W_L))][band]
+        theta = self.t[str(float(W_L))][band]
+        E = self.E[str(float(W_L))][band]
 
         A = np.zeros(k.shape[0])
         B = np.zeros(k.shape[0])
@@ -152,41 +152,41 @@ class QuantumWell():
         kappa[::2] = k[::2]*mB/mW*np.tan(theta[::2])
         kappa[1::2] = -k[1::2]*mB/mW/np.tan(theta[1::2])
         #Ec 2.111 Quantum wells, wires and dots Harrison
-        A[::2] = 1/np.sqrt(aW/2 + np.sin(k[::2]*aW)/(2 * k[::2]) + np.cos(k[::2]*aW/2) ** 2 / kappa[::2]) 
-        B[::2] = A[::2] * np.exp(kappa[::2] * aW / 2) * np.cos(k[::2] * aW / 2)
+        A[::2] = 1/np.sqrt(W_L/2 + np.sin(k[::2]*W_L)/(2 * k[::2]) + np.cos(k[::2]*W_L/2) ** 2 / kappa[::2]) 
+        B[::2] = A[::2] * np.exp(kappa[::2] * W_L / 2) * np.cos(k[::2] * W_L / 2)
         #Ec 2.112 Quantum wells, wires and dots Harrison
-        A[1::2] = 1/np.sqrt(aW/2 - np.sin(k[1::2]*aW)/(2 * k[1::2]) + np.sin(k[1::2]*aW/2) ** 2 / kappa[1::2]) 
-        B[1::2] = A[1::2] * np.exp(kappa[1::2] * aW / 2) * np.sin(k[1::2] * aW / 2)
-        aWs = aW/1000 #aW step
-        aWl = []
-        aWrange = 3*aW
+        A[1::2] = 1/np.sqrt(W_L/2 - np.sin(k[1::2]*W_L)/(2 * k[1::2]) + np.sin(k[1::2]*W_L/2) ** 2 / kappa[1::2]) 
+        B[1::2] = A[1::2] * np.exp(kappa[1::2] * W_L / 2) * np.sin(k[1::2] * W_L / 2)
+        W_Ls = W_L/1000 #W_L step
+        W_Ll = []
+        W_Lrange = 3*W_L
         for _ in k:
-            aWl.append(np.arange(-aWrange, aWrange + aWs, aWs))
-        aWr = np.array(aWl)
-        aWn = int((aWrange - aW/2)/aWs) #index of -aW
-        aWp = int((aWrange + aW/2)/aWs)
+            W_Ll.append(np.arange(-W_Lrange, W_Lrange + W_Ls, W_Ls))
+        W_Lr = np.array(W_Ll)
+        W_Ln = int((W_Lrange - W_L/2)/W_Ls) #index of -W_L
+        W_Lp = int((W_Lrange + W_L/2)/W_Ls)
         
-        psi = np.zeros((k.shape[0],aWr.shape[1]))
-        psi[::2,:aWn] = (np.exp(aWr[::2].T[:aWn,:]*(kappa[::2]))*B[::2]).T
-        psi[::2,aWn:aWp] = (np.cos(aWr[::2].T[aWn:aWp,:]*(k[::2]))*A[::2]).T
-        psi[::2,aWp:] = (np.exp(-aWr[::2].T[aWp:,:]*(kappa[::2]))*B[::2]).T
+        psi = np.zeros((k.shape[0],W_Lr.shape[1]))
+        psi[::2,:W_Ln] = (np.exp(W_Lr[::2].T[:W_Ln,:]*(kappa[::2]))*B[::2]).T
+        psi[::2,W_Ln:W_Lp] = (np.cos(W_Lr[::2].T[W_Ln:W_Lp,:]*(k[::2]))*A[::2]).T
+        psi[::2,W_Lp:] = (np.exp(-W_Lr[::2].T[W_Lp:,:]*(kappa[::2]))*B[::2]).T
         
-        psi[1::2,:aWn] = (np.exp(aWr[1::2].T[:aWn,:]*(kappa[1::2]))*(-B[1::2])).T
-        psi[1::2,aWn:aWp] = (np.sin(aWr[1::2].T[aWn:aWp,:]*(k[1::2]))*A[1::2]).T
-        psi[1::2,aWp:] = (np.exp(-aWr[1::2].T[aWp:,:]*(kappa[1::2]))*B[1::2]).T
+        psi[1::2,:W_Ln] = (np.exp(W_Lr[1::2].T[:W_Ln,:]*(kappa[1::2]))*(-B[1::2])).T
+        psi[1::2,W_Ln:W_Lp] = (np.sin(W_Lr[1::2].T[W_Ln:W_Lp,:]*(k[1::2]))*A[1::2]).T
+        psi[1::2,W_Lp:] = (np.exp(-W_Lr[1::2].T[W_Lp:,:]*(kappa[1::2]))*B[1::2]).T
         
-        normalization = (integrate.simpson(psi ** 2, dx=aWs)) # psi - nergies for the integration and confirm normalization
+        normalization = (integrate.simpson(psi ** 2, dx=W_Ls)) # psi - nergies for the integration and confirm normalization
 
         print(normalization)
         
         fig, ax = plt.subplots(dpi=500)
-        ax.plot(aWr.T, psi.T + E, linewidth=0.5)
-        wellx = [-aWrange, -aW/2, -aW/2, aW/2, aW/2, aWrange]
+        ax.plot(W_Lr.T, psi.T + E, linewidth=0.5)
+        wellx = [-W_Lrange, -W_L/2, -W_L/2, W_L/2, W_L/2, W_Lrange]
         welly = [V0, V0, 0,0, V0, V0]
         ax.set_ylabel(r'$E$')
         ax.set_xlabel(r'$L$')
         plt.plot(wellx, welly, color='black', linewidth=1)
-        energyx = [-aWrange, aWrange]
+        energyx = [-W_Lrange, W_Lrange]
         Ey = np.array([E, E])
         plt.gca().set_prop_cycle(None)
         plt.plot(energyx, Ey, '-.', linewidth=0.5)
